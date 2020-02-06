@@ -1,0 +1,37 @@
+Data Prep for Racon
+
+Description: This tutorial is created to prepare the data for Racon. First, minimap2 and then miniasm is executed. 
+Then, minimap is executed with the original reads mapped against the raw assembly, and then racon is executed. 
+
+# Download sample PacBio from the PBcR website
+wget -O- http://www.cbcb.umd.edu/software/PBcR/data/selfSampleData.tar.gz | tar zxf -
+
+# Install minimap and miniasm (requiring gcc and zlib)
+
+git clone https://github.com/lh3/minimap2 && (cd minimap2 && make)
+git clone https://github.com/lh3/miniasm  && (cd miniasm  && make)
+
+# Overlap for PacBio reads (or use "-x ava-ont" for nanopore read overlapping)
+
+minimap2/minimap2 -x ava-pb -t8 selfSampleData/pacbio_filtered.fastq selfSampleData/pacbio_filtered.fastq | gzip -1 > reads.paf.gz
+
+# Layout
+
+miniasm/miniasm -f selfSampleData/pacbio_filtered.fastq reads.paf.gz > reads.gfa
+
+# Convert to fasta
+
+head -n 1 reads.gfa | awk '{print ">"$2; print $3}' > assembly.fasta
+
+# We first use minimap again, this time with the original reads mapped against the ‘raw’ assembly:
+
+minimap assembly.fasta selfSampleData/pacbio_filtered.fastq > reads_mapped.paf
+
+# Then use racon
+
+racon -t 2 selfSampleData/pacbio_filtered.fastq reads_mapped.paf assembly.fasta output_name.fasta
+
+Resources:
+
+https://github.com/lh3/miniasm
+

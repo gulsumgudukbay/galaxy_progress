@@ -1,0 +1,25 @@
+TUTORIAL
+
+Description: This tutorial is to forward ssh traffic to local browser. It is used to tackle the problem for slow 
+execution of browsers when ssh -X forwarding is used when we are running galaxy in external nodes and when we want to 
+access the UI. 
+
+1. Creating a tunnel
+ssh -vv -ND 9999 -i cloudlab.key user@ip
+In which 9999 is the proxy port you created locally.
+
+2. Make sure you are using SOCKS5 proxy option and 9999 when launching browser:
+
+chromium --proxy-server="socks5://localhost:9999"-proxy-bypass-list='<-loopback>'
+
+The --proxy-server="socks5://myproxy:9999" flag tells Chrome to send all http:// and https:// URL requests through the 
+SOCKS proxy server "myproxy:9999", using version 5 of the SOCKS protocol. The hostname for these URLs will be resolved 
+by the proxy server, and not locally by Chrome.
+
+Loopback is to bypass localhost, so that we can redirect the traffic from galaxy 
+to localhost
+
+
+Resources:
+
+https://www.chromium.org/developers/design-documents/network-stack/socks-proxy
